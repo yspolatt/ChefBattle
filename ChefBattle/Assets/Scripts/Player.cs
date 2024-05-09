@@ -8,15 +8,22 @@ public class Player : MonoBehaviour
     [SerializeField] private GameInput gameInput;
     [SerializeField] private float interactDistance = 2f;
     private bool isWalking;
+    private bool isHolding = false;
     private Vector3 lastInteractDir;
+    private Transform steakathand;
     private void Update()
     {
+        gameInput.disableWantsdrop();
         HandleMovement();
         HandleInteractions();
     }
     public bool IsWalking()
     {
         return isWalking;
+    }
+    public Transform getSteak()
+    {
+        return steakathand;
     }
     private void HandleInteractions()
     {
@@ -31,22 +38,29 @@ public class Player : MonoBehaviour
             if (raycasthit.transform.TryGetComponent(out Stove stove))
             {
                 //Stove
-                if (gameInput.Wantspick())
+                if (gameInput.Wantspick() && !isHolding)
                 {
                     stove.pick();
                     gameInput.disableWantspick();
                 }
-                else if (gameInput.Wantsdrop())
+                else if (gameInput.Wantsdrop() && isHolding && stove.IsEmpty())
+                {
+                    Destroy(steakathand.gameObject);
                     stove.drop();
-                gameInput.disableWantsdrop();
+                    isHolding = false;
+                    gameInput.disableWantsdrop();
+
+                }
             }
-            else if (raycasthit.transform.TryGetComponent(out Fridge fridge) && gameInput.Wantspick())
+            else if (raycasthit.transform.TryGetComponent(out Fridge fridge) && gameInput.Wantspick() && !isHolding)
             {
                 fridge.interact();
+                steakathand = fridge.getSteak();
+                Debug.Log(steakathand);
+                isHolding = true;
                 gameInput.disableWantspick();
-
             }
-            else if (raycasthit.transform.TryGetComponent(out ServiceTable servicetable) && gameInput.Wantsdrop())
+            else if (raycasthit.transform.TryGetComponent(out ServiceTable servicetable) && gameInput.Wantsdrop() && isHolding)
             {
                 servicetable.interact();
                 gameInput.disableWantsdrop();

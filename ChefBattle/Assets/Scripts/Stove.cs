@@ -4,14 +4,24 @@ using UnityEngine;
 
 public class Stove : MonoBehaviour
 {
+    [SerializeField] private Transform panPoint;
+    [SerializeField] private Transform steakPrefab;
+
+    private Transform steakTransform;
+    public bool isEmpty = true;
+
     public void drop()
     {
-        Debug.Log("I want to drop what is in my hand");
-
+        steakTransform = Instantiate(steakPrefab, panPoint);
+        steakTransform.localPosition = Vector3.zero;
+        isEmpty = false;
     }
     public void pick()
     {
         Debug.Log("I want to pick up from the stove");
-
+        isEmpty = true;
+    }
+    public bool IsEmpty(){
+        return isEmpty;
     }
 }
