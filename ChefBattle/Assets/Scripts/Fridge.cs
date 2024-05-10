@@ -8,12 +8,13 @@ public class Fridge : MonoBehaviour
     [SerializeField] private Transform carryPoint;
     private Transform steakTransform;
 
-    public void interact(){
+    public Transform getSteak()
+    {
         Debug.Log("I want to pick a Steak!");
         steakTransform = Instantiate(steakPrefab, carryPoint);
         steakTransform.localPosition = Vector3.zero;
-    }
-    public Transform getSteak(){
         return steakTransform;
+
     }
+    
 }

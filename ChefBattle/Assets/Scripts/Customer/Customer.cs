@@ -8,6 +8,7 @@ public class Customer : MonoBehaviour
 {
     private NavMeshAgent navMeshAgent;
     private Transform target;
+    private bool hasReachedDestination = false; // Flag to check if the destination is reached
 
 
     void Start(){
@@ -19,7 +20,7 @@ public class Customer : MonoBehaviour
 
     void  Update(){
         MoveToAvailableTable();
-        
+        CheckIfReachedTarget();
     }
 
     private Transform FindAvailableTargets(){
@@ -54,6 +55,23 @@ public class Customer : MonoBehaviour
             navMeshAgent.SetDestination(target.position);
         }
 
+    }
+     private void CheckIfReachedTarget()
+    {
+        if (target != null && !hasReachedDestination)
+        {
+            // Check if the customer has reached the target by measuring the distance to the target
+            if (!navMeshAgent.pathPending && navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
+            {
+                // I should add the isEnqueued bool to do this only once.
+                if (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)
+                {
+                    // Arrived
+                    hasReachedDestination = true;
+                    
+                }
+            }
+        }
     }
 
 
