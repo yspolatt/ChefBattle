@@ -4,15 +4,36 @@ using UnityEngine;
 
 public class Steak : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private float cookingDuration = 0.0f;
+    Coroutine cookingRoutine;
+    public Steak(float cookingDuration)
     {
-        
+        this.cookingDuration = cookingDuration;
+    }
+    public void StartCooking()
+    {
+        cookingRoutine = StartCoroutine(CookingRoutine());
+    }
+    public float StopCooking()
+    {
+        StopCoroutine(cookingRoutine);
+        return cookingDuration;
+    }
+    public float GetCookingDuration()
+    {
+        return cookingDuration;
     }
 
-    // Update is called once per frame
-    void Update()
+    IEnumerator CookingRoutine()
     {
-        
+
+        while (true)
+        {
+            // Update the remaining time
+            cookingDuration += Time.deltaTime;
+
+            // Wait until the next frame
+            yield return null;
+        }
     }
 }

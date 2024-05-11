@@ -7,14 +7,19 @@ public class Player : MonoBehaviour
 {
     [SerializeField] private float speed = 5f;
     [SerializeField] private GameInput gameInput;
-    [SerializeField] private float interactDistance = 2f;
+    private float interactDistance = 2f;
     private bool isWalking;
+    private bool isHoldingRaw = false;
+    private bool isHoldingCooked = false;
     private bool isHolding = false;
     private Vector3 lastInteractDir;
+    private float cookingDuration;
     private Transform steakathand;
+    private StoveManager stoveManager = new StoveManager();
     private void Update()
     {
         gameInput.disableWantsdrop();
+        gameInput.disableWantspick();
         HandleMovement();
         HandleInteractions();
     }
@@ -38,33 +43,47 @@ public class Player : MonoBehaviour
         {
             if (raycasthit.transform.TryGetComponent(out Stove stove))
             {
+                string inputStove = stove.name;
+                char lastChar = inputStove[inputStove.Length - 1];
+                int num = int.Parse(lastChar.ToString());
                 //Stove
-                if (gameInput.Wantspick() && !isHolding)
+                if (gameInput.Wantspick() && !isHolding && !stoveManager.IsStoveEmpty(num))
                 {
-                    stove.pick();
+
+                    steakathand = stove.pick(num, stoveManager);
+                    cookingDuration = stove.GetCookingDuration();
+                    Debug.Log($"Now I am holding a steak that cooked {cookingDuration} seconds");
+                    stoveManager.SetStoveEmpty(num, true);
                     gameInput.disableWantspick();
-                }
-                else if (gameInput.Wantsdrop() && isHolding && stove.IsEmpty())
-                {
-                    Destroy(steakathand.gameObject);
-                    stove.drop();
-                    isHolding = false;
-                    gameInput.disableWantsdrop();
+                    isHoldingCooked = true;
+                    isHolding = true;
 
                 }
+                else if (gameInput.Wantsdrop() && isHoldingRaw && stoveManager.IsStoveEmpty(num))
+                {
+                    Destroy(steakathand.gameObject);
+                    stove.drop(num, stoveManager);
+                    stoveManager.SetStoveEmpty(num, false);
+                    isHoldingRaw = false;
+                    isHolding = false;
+                    gameInput.disableWantsdrop();
+                }
             }
-            else if (raycasthit.transform.TryGetComponent(out Fridge fridge) && gameInput.Wantspick() && !isHolding)
+            else if (raycasthit.transform.TryGetComponent(out Fridge fridge) && gameInput.Wantspick() && !isHolding && stoveManager.EmptyStoveCount() > 0)
             {
-                fridge.interact();
                 steakathand = fridge.getSteak();
                 Debug.Log(steakathand);
                 isHolding = true;
+                isHoldingRaw = true;
                 gameInput.disableWantspick();
             }
-            else if (raycasthit.transform.TryGetComponent(out ServiceTable servicetable) && gameInput.Wantsdrop() && isHolding)
+            else if (raycasthit.transform.TryGetComponent(out ServiceTable servicetable) && gameInput.Wantsdrop() && isHoldingCooked && servicetable.getEmptyPlaceCount()>0 )
             {
-                servicetable.interact();
+                servicetable.drop(cookingDuration);
+                Destroy(steakathand.gameObject);
                 gameInput.disableWantsdrop();
+                isHolding = false;
+                isHoldingCooked = false;
 
             }
         }

@@ -80,6 +80,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   panPoint: {fileID: 8389935504468396528}
   steakPrefab: {fileID: 8537235241691418192, guid: 4ae876523b2284b5bbf204f4dd86ac35, type: 3}
+  isEmpty: 1
 --- !u!1 &8887705857894359690
 GameObject:
   m_ObjectHideFlags: 0
