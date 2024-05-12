@@ -9,10 +9,8 @@ public class Customer : MonoBehaviour
 {
     private NavMeshAgent navMeshAgent;
     private Transform target;
-
     public CustomerStateEnum state;
-
-
+    private CustomerManager customerManager;
     public static event Action<Customer> OnArrivedExit;
     public static event Action<Customer> OnSeat;
     public static event Action<CustomerState> OnCustomerStateChanged; // not used for now
@@ -22,35 +20,39 @@ public class Customer : MonoBehaviour
     private Renderer customerRenderer;
     private Color originalColor;
 
-    
-    private void Awake(){
+
+    private void Awake()
+    {
         customerRenderer = findRenderer();
         navMeshAgent = GetComponent<NavMeshAgent>();
         originalColor = customerRenderer.material.color;
     }
 
-    private void Start(){
-
-
+    private void Start()
+    {
+        customerManager = FindObjectOfType<CustomerManager>();
     }
-    private void OnEnable(){
+    private void OnEnable()
+    {
         StartMove();
     }
 
-   
 
-    void  Update(){
 
-        if (HasArrived()){
-            switch(state){
+    void Update()
+    {
+
+        if (HasArrived())
+        {
+            switch (state)
+            {
                 case CustomerStateEnum.MovingToTable:
                     state = CustomerStateEnum.WaitingOrder;
-                    CustomerManager.Instance.seatedCustomers.Add(this);
+                    customerManager.AddToWaitingQueue(this);
                     StartCoroutine(WaitingOrderCoroutine());
                     break;
                 case CustomerStateEnum.MovingToQueue:
                     state = CustomerStateEnum.InQueue;
-
                     break;
                 case CustomerStateEnum.MovingToExit:
                     OnArrivedExit?.Invoke(this);
@@ -64,14 +66,14 @@ public class Customer : MonoBehaviour
                 //     state = CustomerState.Leaving;
                 //     break;
                 //case CustomerStateEnum.Leaving:
-                
+
                 //break;
                 default:
                     break;
             }
 
         }
-        
+
     }
 
     //NOT USED FOR NOW
@@ -89,7 +91,7 @@ public class Customer : MonoBehaviour
     //             //customer waits for steak to arrive
     //             //if customer waits for too long, customer leaves
     //             //if steak arrives, customer starts eating
-                
+
     //             break;
     //         case CustomerStateEnum.Eating:
     //             //customer eats steak, after eating, customer leaves, 
@@ -106,37 +108,42 @@ public class Customer : MonoBehaviour
     // }
 
     private bool HasArrived()
-{
-    if (!navMeshAgent.pathPending)
     {
-        if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
+        if (!navMeshAgent.pathPending)
         {
-            if (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)
+            if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
             {
-                
-                return true;
+                if (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)
+                {
+
+                    return true;
+                }
             }
         }
+        return false;
     }
-    return false;
-}
 
-    private Transform FindAvailableTargets(){
+    private Transform FindAvailableTargets()
+    {
 
         GameObject[] tables = GameObject.FindGameObjectsWithTag("Table");
 
         List<Seat> availableSeats = new List<Seat>();
 
-        foreach(GameObject table in tables){
+        foreach (GameObject table in tables)
+        {
             Table tableScript = table.GetComponent<Table>();
-            foreach(Seat seat in tableScript.seats){
-                if(seat.isAvailable){
+            foreach (Seat seat in tableScript.seats)
+            {
+                if (seat.isAvailable)
+                {
                     availableSeats.Add(seat);
                 }
             }
         }
-       
-        if(availableSeats.Count > 0){
+
+        if (availableSeats.Count > 0)
+        {
             int randomIndex = UnityEngine.Random.Range(0, availableSeats.Count);
             availableSeats[randomIndex].isAvailable = false;
             return availableSeats[randomIndex].position;
@@ -146,20 +153,24 @@ public class Customer : MonoBehaviour
 
     }
 
-    private void MoveToAvailableTable(){
-        Debug.Log(navMeshAgent);
-        if (target != null && navMeshAgent.remainingDistance < 0.1f ){
+    private void MoveToAvailableTable()
+    {
+        //Debug.Log(navMeshAgent);
+        if (target != null && navMeshAgent.remainingDistance < 0.1f)
+        {
             navMeshAgent.SetDestination(target.position);
-           
+
         }
         state = CustomerStateEnum.MovingToTable;
 
     }
-    
-    
-    private void MoveToTheQueue(){
+
+
+    private void MoveToTheQueue()
+    {
         Transform queuePoint = CustomerManager.Instance.queuePoint;
-        if (CustomerManager.Instance.customerQueue.Count >= CustomerManager.Instance.queueCapacity){
+        if (CustomerManager.Instance.customerQueue.Count >= CustomerManager.Instance.queueCapacity)
+        {
             MoveToExit();
             return;
         }
@@ -172,17 +183,18 @@ public class Customer : MonoBehaviour
 
     }
 
-    private void MoveToExit(){
+    public void MoveToExit()
+    {
         Transform exitPoint = CustomerManager.Instance.customerDisappearPoint;
         navMeshAgent.SetDestination(exitPoint.position);
         state = CustomerStateEnum.MovingToExit;
     }
 
-   private IEnumerator WaitingOrderCoroutine()
+    private IEnumerator WaitingOrderCoroutine()
     {
-        float duration = 10f; 
+        float duration = 3f;
         float elapsedTime = 0f;
-        Color targetColor = Color.red; 
+        Color targetColor = Color.red;
 
         while (elapsedTime < duration)
         {
@@ -192,46 +204,51 @@ public class Customer : MonoBehaviour
         }
 
     }
-     private Renderer findRenderer(){
+    private Renderer findRenderer()
+    {
         GameObject baseCharacter = transform.Find("BaseCharacter").gameObject;
         GameObject body = baseCharacter.transform.Find("Body").gameObject;
         return body.GetComponent<Renderer>();
-
-       
+        //Debug.Log(body.GetComponent<Renderer>());
     }
 
-    private void OnDestroy(){
-        if (state == CustomerStateEnum.MovingToQueue){
+    private void OnDestroy()
+    {
+        if (state == CustomerStateEnum.MovingToQueue)
+        {
             CustomerManager.Instance.customerQueue.Remove(this);
         }
-        else if (state == CustomerStateEnum.MovingToTable){
-            CustomerManager.Instance.seatedCustomers.Remove(this);
-        }
     }
-    public void StartMove(){
+    public void StartMove()
+    {
         //renderer.material.color = originalColor;
         target = FindAvailableTargets();
-        if(target != null){
-           MoveToAvailableTable();
+        if (target != null)
+        {
+            MoveToAvailableTable();
         }
-        else {
-            if (!CustomerManager.Instance.isQueueFull()){
+        else
+        {
+            if (!CustomerManager.Instance.isQueueFull())
+            {
                 MoveToTheQueue();
             }
-            else{
+            else
+            {
                 MoveToExit();
             }
         }
     }
 
-    
 
 
-  
+
+
 
 }
 
-public enum CustomerStateEnum{
+public enum CustomerStateEnum
+{
     MovingToTable,
     InQueue,
     MovingToQueue,
@@ -241,10 +258,12 @@ public enum CustomerStateEnum{
     Leaving
 }
 
-public class CustomerState{
+public class CustomerState
+{
     public CustomerStateEnum state;
     public Customer customer;
-    public CustomerState(CustomerStateEnum state, Customer customer){
+    public CustomerState(CustomerStateEnum state, Customer customer)
+    {
         this.state = state;
         this.customer = customer;
     }

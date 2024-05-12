@@ -7,6 +7,7 @@ public class StoveManager : MonoBehaviour
     private Dictionary<int, bool> stovesEmptiness = new Dictionary<int, bool>();
     private Dictionary<int, float> stoveSteakDuration = new Dictionary<int, float>();
     private Dictionary<int, Steak> stoveSteak = new Dictionary<int, Steak>();
+    private Dictionary<int, Color> stoveColors = new Dictionary<int, Color>();
 
     Coroutine cookingRoutine;
 
@@ -21,6 +22,12 @@ public class StoveManager : MonoBehaviour
         stoveSteak.Add(1, null);
         stoveSteak.Add(2, null);
         stoveSteak.Add(3, null);
+        stoveColors.Add(1, Color.white);
+        stoveColors.Add(2, Color.white);
+        stoveColors.Add(3, Color.white);
+    }
+    public Color GetStoveColor(int num){
+        return stoveColors[num];
     }
     public Steak GetSteak(int num){
         return stoveSteak[num];
@@ -60,12 +67,12 @@ public class StoveManager : MonoBehaviour
     {   
         GetSteak(num).StartCooking();
     }
-    public float StopCooking(int num)
+    public Steak StopCooking(int num)
     {   
-        float duration = GetSteak(num).StopCooking();
+        Steak pickedSteak = GetSteak(num);
         SetStoveEmpty(num, true);
         SetSteak(num, null);
         SetStoveSteakDuration(num, 0);
-        return duration;
+        return pickedSteak;
     }
 }

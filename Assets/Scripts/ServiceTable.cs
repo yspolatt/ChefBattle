@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class ServiceTable : MonoBehaviour
 {
-    private Queue readySteakQueue = new Queue();
+    private ShopManager shopmanager;
+    private Queue<Transform> readySteakQueue = new Queue<Transform>();
     [SerializeField] private Transform cookedPrefab;
     [SerializeField] private Transform[] plateSpawnPoints;
     private Queue<int> emptySpawnPoints = new Queue<int>();
@@ -20,21 +21,30 @@ public class ServiceTable : MonoBehaviour
     }
 
     private Transform steakpicked;
-    public void drop(float duration)
+    public Transform drop(Transform steakTransform)
     {
-        readySteakQueue.Enqueue(duration);
+        readySteakQueue.Enqueue(steakTransform);
         nextEmptySpawnPoint = emptySpawnPoints.Dequeue();
         Transform spawnPoint = plateSpawnPoints[nextEmptySpawnPoint];
-        steakpicked = Instantiate(cookedPrefab, spawnPoint);
-        steakpicked.localPosition = Vector3.zero;
+        steakTransform.parent = spawnPoint;
+        steakTransform.localPosition = Vector3.zero;
         emptyPlaceCount--;
+        return spawnPoint;
     }
     public int getEmptyPlaceCount()
     {
         return emptyPlaceCount;
     }
-    public float getNextSteakDuration()
+    public Transform getNextSteak()
     {
-        return (float)readySteakQueue.Dequeue();
+        return readySteakQueue.Dequeue();
+    }
+    public void incrementEmptyPlaceCount()
+    {
+        emptyPlaceCount++;
+    }
+    public bool isPlateThere()
+    {
+        return emptyPlaceCount < 4;
     }
 }

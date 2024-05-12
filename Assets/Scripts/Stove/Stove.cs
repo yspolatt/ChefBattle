@@ -6,9 +6,8 @@ public class Stove : MonoBehaviour
 {
     [SerializeField] private Transform panPoint;
     [SerializeField] private Transform steakPrefab;
-    [SerializeField] private Transform cookedPrefab;
+    private Steak steak;
 
-    [SerializeField] private Transform carryPoint;
     private Transform steakdropped;
     private Transform steakpicked;
     private bool isEmpty = true;
@@ -25,11 +24,10 @@ public class Stove : MonoBehaviour
     }
     public Transform pick(int num, StoveManager stoveManager)
     {
-        this.cookingDuration = stoveManager.StopCooking(num);
+        steak = stoveManager.GetSteak(num);
+        steak.StopCooking();
+        steakpicked = steak.transform;
         isEmpty = true;
-        steakpicked = Instantiate(cookedPrefab, carryPoint);
-        steakpicked.localPosition = Vector3.zero;
-        Destroy(steakdropped.gameObject);
         return steakpicked;
     }
     public float GetCookingDuration()

@@ -7,6 +7,11 @@ public class Player : MonoBehaviour
 {
     [SerializeField] private float speed = 5f;
     [SerializeField] private GameInput gameInput;
+    [SerializeField] private Transform plate;
+    [SerializeField] private Transform carryPoint;
+
+    private Transform plateAtHand;
+
     private float interactDistance = 2f;
     private bool isWalking;
     private bool isHoldingRaw = false;
@@ -15,6 +20,7 @@ public class Player : MonoBehaviour
     private Vector3 lastInteractDir;
     private float cookingDuration;
     private Transform steakathand;
+    private Transform plateSpawnPoint;
     private StoveManager stoveManager = new StoveManager();
     private void Update()
     {
@@ -49,10 +55,12 @@ public class Player : MonoBehaviour
                 //Stove
                 if (gameInput.Wantspick() && !isHolding && !stoveManager.IsStoveEmpty(num))
                 {
-
+                    plateAtHand = Instantiate(plate, carryPoint);
+                    plateAtHand.localPosition = Vector3.zero;
+                    plateAtHand.localScale = new Vector3(3, 3, 3);
                     steakathand = stove.pick(num, stoveManager);
-                    cookingDuration = stove.GetCookingDuration();
-                    Debug.Log($"Now I am holding a steak that cooked {cookingDuration} seconds");
+                    steakathand.parent = plateAtHand;
+                    steakathand.localPosition = new Vector3(0, 0.014f, 0.02f);
                     stoveManager.SetStoveEmpty(num, true);
                     gameInput.disableWantspick();
                     isHoldingCooked = true;
@@ -77,10 +85,9 @@ public class Player : MonoBehaviour
                 isHoldingRaw = true;
                 gameInput.disableWantspick();
             }
-            else if (raycasthit.transform.TryGetComponent(out ServiceTable servicetable) && gameInput.Wantsdrop() && isHoldingCooked && servicetable.getEmptyPlaceCount()>0 )
-            {
-                servicetable.drop(cookingDuration);
-                Destroy(steakathand.gameObject);
+            else if (raycasthit.transform.TryGetComponent(out ServiceTable servicetable) && gameInput.Wantsdrop() && isHoldingCooked && servicetable.getEmptyPlaceCount() > 0)
+            {   
+                servicetable.drop(steakathand);
                 gameInput.disableWantsdrop();
                 isHolding = false;
                 isHoldingCooked = false;

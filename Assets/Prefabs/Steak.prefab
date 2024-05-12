@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 6575299867799605799}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4424086076459679807}
@@ -45,6 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8371b6a997924d05ba1756986b7f7bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startColor: {r: 0, g: 0, b: 0, a: 0}
+  endColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1001 &5186977838114312271
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52,6 +54,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8537235241691418192}
     m_Modifications:
+    - target: {fileID: 7698189811460270879, guid: 10ab30527b9bc8a4995e798ac0706a37, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: fd5c61492a05ec143bd2480588b974c2, type: 2}
     - target: {fileID: 8202614754564459210, guid: 10ab30527b9bc8a4995e798ac0706a37, type: 3}
       propertyPath: m_Name
       value: Steak

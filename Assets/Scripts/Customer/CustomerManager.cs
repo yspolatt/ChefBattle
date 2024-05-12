@@ -9,12 +9,12 @@ public class CustomerManager : Singleton<CustomerManager>
 {
     public List<Customer> customers = new List<Customer>();
     public List<Customer> customerQueue = new List<Customer>();
-    public List<Customer> seatedCustomers = new List<Customer>();
+    private Queue<Customer> seatedCustomers = new Queue<Customer>();
 
     public int queueCapacity = 5;
 
-    [SerializeField] private float minSpawnInterval = 10f;
-    [SerializeField] private float maxSpawnInterval = 30f;
+    [SerializeField] private float minSpawnInterval = 2900f;
+    [SerializeField] private float maxSpawnInterval = 3000f;
 
     [SerializeField] private Transform[] customerSpawnPoints;
 
@@ -37,8 +37,6 @@ public class CustomerManager : Singleton<CustomerManager>
     }
 
     private void Start(){
-
-    
         StartCoroutine(SpawnCustomers());
     }
 
@@ -85,24 +83,24 @@ public class CustomerManager : Singleton<CustomerManager>
         customers.Remove(customer);
 
         // these two methods are called to be safe
-        RemoveSeatedCustomer(customer);
-        RemoveCustomerInQueue(customer);
-
         customerPool.Release(customer);
     }
 
-    private void RemoveSeatedCustomer(Customer customer){
-        seatedCustomers.Remove(customer);
-    }
-
-    private void RemoveCustomerInQueue(Customer customer){
-        customerQueue.Remove(customer);
- 
-   }
 
    public bool isQueueFull(){
        return customerQueue.Count >= queueCapacity;
    }
+   public void AddToWaitingQueue(Customer customer){
+       seatedCustomers.Enqueue(customer);
+        //Debug.Log($"{customer} is Added to queue");
+   }
+   public Customer RemoveFromWaitingQueue(){
+       return seatedCustomers.Dequeue();
+   }
+   public bool isAnyCustomerWaiting(){
+       return seatedCustomers.Count > 0;
+   }
+
 
     
 }
