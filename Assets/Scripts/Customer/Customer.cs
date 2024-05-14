@@ -42,7 +42,7 @@ public class Customer : MonoBehaviour
 
     }
 
-    private void Start()
+    private void OnEnable()
     {
         StartMove();
     }
@@ -101,10 +101,15 @@ public class Customer : MonoBehaviour
 
 
     private bool HasArrived()
-    {
+    {   
+
+        if ((navMeshAgent.remainingDistance <= 2f && state == CustomerStateEnum.MovingToExit))
+        {
+            return true;
+        }
         if (!navMeshAgent.pathPending)
         {
-            if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
+            if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance    )
             {
                 if (!navMeshAgent.hasPath || navMeshAgent.velocity.sqrMagnitude == 0f)
                 {

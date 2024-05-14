@@ -1646,7 +1646,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7794472966003706008, guid: cbec771c1795bd6458b2310c86d5d6b7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.01
+      value: -4.13
       objectReference: {fileID: 0}
     - target: {fileID: 7794472966003706008, guid: cbec771c1795bd6458b2310c86d5d6b7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1654,7 +1654,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7794472966003706008, guid: cbec771c1795bd6458b2310c86d5d6b7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -6.32
+      value: -6
       objectReference: {fileID: 0}
     - target: {fileID: 7794472966003706008, guid: cbec771c1795bd6458b2310c86d5d6b7, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2441,8 +2441,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   customers: []
   queueCapacity: 5
-  minSpawnInterval: 2
-  maxSpawnInterval: 5
+  minSpawnInterval: 1
+  maxSpawnInterval: 2
   customerSpawnPoints:
   - {fileID: 457899445}
   - {fileID: 395359394}
@@ -2872,7 +2872,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7794472966003706008, guid: cbec771c1795bd6458b2310c86d5d6b7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.04
+      value: -4.02
       objectReference: {fileID: 0}
     - target: {fileID: 7794472966003706008, guid: cbec771c1795bd6458b2310c86d5d6b7, type: 3}
       propertyPath: m_LocalPosition.y

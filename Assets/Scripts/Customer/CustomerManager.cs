@@ -69,6 +69,7 @@ public class CustomerManager : Singleton<CustomerManager>
 
     
     private void SpawnCustomer(){
+        Debug.Log("Spawning customer");
         Customer customer = customerPool.Get();
         customers.Add(customer);
     }
