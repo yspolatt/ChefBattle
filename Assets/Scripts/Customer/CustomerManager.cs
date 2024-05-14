@@ -8,8 +8,8 @@ using UnityEngine.Pool;
 public class CustomerManager : Singleton<CustomerManager>
 {
     public List<Customer> customers = new List<Customer>();
-    public List<Customer> customerQueue = new List<Customer>();
-    private Queue<Customer> seatedCustomers = new Queue<Customer>();
+    public Queue<Customer> customerWaitingQueue = new Queue<Customer>();
+    public Queue<Customer> seatedCustomers = new Queue<Customer>();
 
     public int queueCapacity = 5;
 
@@ -24,10 +24,7 @@ public class CustomerManager : Singleton<CustomerManager>
 
     public List<GameObject> customerPrefabs;
 
-
-
     private ObjectPool<Customer> customerPool;
-
 
 
     protected override void Awake(){
@@ -87,20 +84,67 @@ public class CustomerManager : Singleton<CustomerManager>
     }
 
 
+
+    // check queue, if there is a customer send to the shop
+    // customer already deleted from seated customers
+    public void HandleCustomerLeavingShop(){
+        int numberOfCustomers = customerWaitingQueue.Count;
+        Debug.Log("Number of customers in queue: " + numberOfCustomers);
+
+        if(isAnyCustomerWaiting()){
+            Customer customerToServe = customerWaitingQueue.Dequeue();
+            customerToServe.StartMove();
+        }
+        MoveQueueOneStep(numberOfCustomers);
+
+       
+        
+    }
+
+    private void MoveQueueOneStep(int numberOfCustomers){
+        queuePoint.position -= new Vector3(0, 0, numberOfCustomers* 1.2f);
+
+        foreach(Customer customer in customerWaitingQueue){
+            customer.MoveToDestination(queuePoint.position);
+            queuePoint.position += new Vector3(0, 0, 1.2f);
+        }
+        
+
+    }
+
+
    public bool isQueueFull(){
-       return customerQueue.Count >= queueCapacity;
+       return customerWaitingQueue.Count >= queueCapacity;
    }
-   public void AddToWaitingQueue(Customer customer){
+   public void AddCustomerToServiceQueue(Customer customer){
        seatedCustomers.Enqueue(customer);
-        //Debug.Log($"{customer} is Added to queue");
+       
    }
-   public Customer RemoveFromWaitingQueue(){
+   public Customer GetCustomerFromServiceQueue(){
+       return seatedCustomers.Peek();
+   }
+
+   public Customer RemoveCustomerFromServiceQueue(){
        return seatedCustomers.Dequeue();
-   }
-   public bool isAnyCustomerWaiting(){
+   }      
+   public bool isAnyCustomerSeated(){
        return seatedCustomers.Count > 0;
    }
 
+    public bool isAnyCustomerWaiting(){
+         return customerWaitingQueue.Count > 0;
+    }
+
+    public void AddCustomerToQueue(Customer customer){
+        customerWaitingQueue.Enqueue(customer);
+    }
+    public Customer RemoveCustomerFromQueue(){
+        return customerWaitingQueue.Dequeue();
+    }
+    
 
     
 }
+
+
+

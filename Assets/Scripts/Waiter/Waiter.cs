@@ -14,12 +14,19 @@ public class Waiter : MonoBehaviour
     [SerializeField] private Transform plate;
     private Transform plateAtHand;
 
+    [SerializeField] private Transform waiterDefaultPosition;
+
+    private CustomerManager customerManager;
+
+
+
     Transform steak;
     [SerializeField] private ServiceTable serviceTable;
     void Start()
     {
-        shopManager = FindObjectOfType<ShopManager>();
+        shopManager = ShopManager.Instance;
         navMeshAgent = GetComponent<NavMeshAgent>();
+        customerManager = CustomerManager.Instance;
 
     }
     void Update()
@@ -46,7 +53,9 @@ public class Waiter : MonoBehaviour
                     plateAtHand.localPosition = Vector3.zero;
                     plateAtHand.localScale = new Vector3(3, 3, 3);
                     shopManager.addWaiter(this);
-                    customer.MoveToExit();
+                    customer.UpdateCustomerState(CustomerStateEnum.Eating);
+                    //MoveDefaultPosition();
+                    // customer.MoveToExit();
                     break;
                 //     state = CustomerState.WaitingOrder;
                 //     break;
@@ -109,6 +118,11 @@ public class Waiter : MonoBehaviour
             }
         }
         return false;
+    }
+
+    private void MoveDefaultPosition()
+    {
+        navMeshAgent.SetDestination(waiterDefaultPosition.position);
     }
     public enum WaiterStateEnum
     {

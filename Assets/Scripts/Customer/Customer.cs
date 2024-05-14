@@ -1,21 +1,32 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
 
 public class Customer : MonoBehaviour
 {
+
+
     private NavMeshAgent navMeshAgent;
     private Transform target;
+
+    private Seat seat;
     public CustomerStateEnum state;
     private CustomerManager customerManager;
-    public static event Action<Customer> OnArrivedExit;
-    public static event Action<Customer> OnSeat;
-    public static event Action<CustomerState> OnCustomerStateChanged; // not used for now
+    private ShopManager shopManager;
 
-    [SerializeField] private float waitTime = 15f;
+    
+    public static event Action<Customer> OnArrivedExit;
+
+    
+    [SerializeField] private float maxWaitOrderTime = 7f;
+
+    [SerializeField] private float eatingTime = 10f;
+
+
 
     private Renderer customerRenderer;
     private Color originalColor;
@@ -26,16 +37,16 @@ public class Customer : MonoBehaviour
         customerRenderer = findRenderer();
         navMeshAgent = GetComponent<NavMeshAgent>();
         originalColor = customerRenderer.material.color;
+        customerManager = CustomerManager.Instance;
+        shopManager = ShopManager.Instance;
+
     }
 
     private void Start()
     {
-        customerManager = FindObjectOfType<CustomerManager>();
-    }
-    private void OnEnable()
-    {
         StartMove();
     }
+    
 
 
 
@@ -48,26 +59,19 @@ public class Customer : MonoBehaviour
             {
                 case CustomerStateEnum.MovingToTable:
                     state = CustomerStateEnum.WaitingOrder;
-                    customerManager.AddToWaitingQueue(this);
+                    customerManager.AddCustomerToServiceQueue(this);
                     StartCoroutine(WaitingOrderCoroutine());
                     break;
                 case CustomerStateEnum.MovingToQueue:
+                    transform.LookAt(Vector3.forward);
                     state = CustomerStateEnum.InQueue;
                     break;
                 case CustomerStateEnum.MovingToExit:
                     OnArrivedExit?.Invoke(this);
                     break;
-                //     state = CustomerState.WaitingOrder;
-                //     break;
-                // case CustomerState.WaitingOrder:
-                //     state = CustomerState.Eating;
-                //     break;
-                // case CustomerState.Eating:
-                //     state = CustomerState.Leaving;
-                //     break;
-                //case CustomerStateEnum.Leaving:
-
-                //break;
+                case CustomerStateEnum.Leaving:
+                    OnArrivedExit?.Invoke(this);
+                    break;
                 default:
                     break;
             }
@@ -76,36 +80,25 @@ public class Customer : MonoBehaviour
 
     }
 
-    //NOT USED FOR NOW
-    // state is the new state that the customer will be in
-    // private void UpdateCustomerState(CustomerStateEnum state, Customer customer){
-    //     CustomerState customerState = new CustomerState(state, customer);
-    //     switch(state){
-    //         case CustomerStateEnum.InQueue:
-    //             //if queue is full, customer leaves
-    //             //if queue is not full, customer waits
-    //             //if customer is at the front of the queue and one customer leaves, customer moves to the table
-    //             //if customer is not at the front of the queue and one customer leaves, customer moves one step forward
-    //             break;
-    //         case CustomerStateEnum.WaitingOrder:
-    //             //customer waits for steak to arrive
-    //             //if customer waits for too long, customer leaves
-    //             //if steak arrives, customer starts eating
 
-    //             break;
-    //         case CustomerStateEnum.Eating:
-    //             //customer eats steak, after eating, customer leaves, 
+    // // state is the new state that the customer will be in
+    public void UpdateCustomerState(CustomerStateEnum state){
 
-    //             break;
-    //         case CustomerStateEnum.Leaving:
-    //             //customer pays for the steak, leaves the restaurant
-    //             //if queue is not empty, customer at the front of the queue moves to the table
+        switch(state){
+            case CustomerStateEnum.Eating:
+                StartEating();
+                break;
+            case CustomerStateEnum.Leaving:
+                MoveToExit();
+                shopManager.ReleaseSeat(seat);
+                customerManager.HandleCustomerLeavingShop();
+                break;
+    
 
-    //             break;
-    //     }
-    //     OnCustomerStateChanged?.Invoke(customerState);
+        }
+    }
 
-    // }
+
 
     private bool HasArrived()
     {
@@ -123,61 +116,34 @@ public class Customer : MonoBehaviour
         return false;
     }
 
-    private Transform FindAvailableTargets()
-    {
 
-        GameObject[] tables = GameObject.FindGameObjectsWithTag("Table");
-
-        List<Seat> availableSeats = new List<Seat>();
-
-        foreach (GameObject table in tables)
-        {
-            Table tableScript = table.GetComponent<Table>();
-            foreach (Seat seat in tableScript.seats)
-            {
-                if (seat.isAvailable)
-                {
-                    availableSeats.Add(seat);
-                }
-            }
-        }
-
-        if (availableSeats.Count > 0)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, availableSeats.Count);
-            availableSeats[randomIndex].isAvailable = false;
-            return availableSeats[randomIndex].position;
-
-        }
-        return null;
-
-    }
 
     private void MoveToAvailableTable()
     {
-        //Debug.Log(navMeshAgent);
         if (target != null && navMeshAgent.remainingDistance < 0.1f)
         {
             navMeshAgent.SetDestination(target.position);
 
         }
+
         state = CustomerStateEnum.MovingToTable;
+
 
     }
 
 
     private void MoveToTheQueue()
     {
-        Transform queuePoint = CustomerManager.Instance.queuePoint;
-        if (CustomerManager.Instance.customerQueue.Count >= CustomerManager.Instance.queueCapacity)
+        Transform queuePoint = customerManager.queuePoint;
+        if (customerManager.isQueueFull())
         {
             MoveToExit();
             return;
         }
         navMeshAgent.SetDestination(queuePoint.position);
-        CustomerManager.Instance.customerQueue.Add(this);
-        CustomerManager.Instance.queuePoint.position += new Vector3(0, 0, 1);
-        transform.LookAt(Vector3.forward);
+        customerManager.customerWaitingQueue.Enqueue(this);
+        customerManager.queuePoint.position += new Vector3(0, 0, 1.2f);
+        
         state = CustomerStateEnum.MovingToQueue;
 
 
@@ -185,21 +151,25 @@ public class Customer : MonoBehaviour
 
     public void MoveToExit()
     {
-        Transform exitPoint = CustomerManager.Instance.customerDisappearPoint;
+        Transform exitPoint = customerManager.customerDisappearPoint;
         navMeshAgent.SetDestination(exitPoint.position);
         state = CustomerStateEnum.MovingToExit;
     }
 
+    public void MoveToDestination(Vector3 targetPosition)
+    {
+        navMeshAgent.SetDestination(targetPosition);
+    }
+
     private IEnumerator WaitingOrderCoroutine()
     {
-        float duration = 3f;
+        
         float elapsedTime = 0f;
         Color targetColor = Color.red;
-
-        while (elapsedTime < duration)
+        while (elapsedTime < maxWaitOrderTime)
         {
             elapsedTime += 0.1f;
-            customerRenderer.material.color = Color.Lerp(originalColor, targetColor, elapsedTime / duration);
+            customerRenderer.material.color = Color.Lerp(originalColor, targetColor, elapsedTime / maxWaitOrderTime);
             yield return new WaitForSeconds(0.1f);
         }
 
@@ -209,27 +179,34 @@ public class Customer : MonoBehaviour
         GameObject baseCharacter = transform.Find("BaseCharacter").gameObject;
         GameObject body = baseCharacter.transform.Find("Body").gameObject;
         return body.GetComponent<Renderer>();
-        //Debug.Log(body.GetComponent<Renderer>());
     }
 
     private void OnDestroy()
     {
         if (state == CustomerStateEnum.MovingToQueue)
         {
-            CustomerManager.Instance.customerQueue.Remove(this);
+            //CustomerManager.Instance.customerQueue.Remove(this);  burda niye bu var bilmiyorum
         }
     }
+
+    
     public void StartMove()
-    {
-        //renderer.material.color = originalColor;
-        target = FindAvailableTargets();
+    {   
+        
+        seat = null;
+        customerRenderer.material.color = originalColor;
+        seat = shopManager.FindAvailableSeats();
+
+        target = seat?.transform;
+
         if (target != null)
         {
+            seat.isAvailable = false;
             MoveToAvailableTable();
         }
         else
         {
-            if (!CustomerManager.Instance.isQueueFull())
+            if (!customerManager.isQueueFull())
             {
                 MoveToTheQueue();
             }
@@ -240,10 +217,21 @@ public class Customer : MonoBehaviour
         }
     }
 
+    public void StartEating(){
+        StartCoroutine(EatingCoroutine());
 
+    }
 
-
-
+    private IEnumerator EatingCoroutine()
+    {
+        float elapsedTime = 0f;
+        while(elapsedTime < eatingTime){
+            elapsedTime += 0.1f;
+            customerRenderer.material.color = Color.Lerp(customerRenderer.material.color, originalColor, elapsedTime / eatingTime);
+            yield return new WaitForSeconds(0.1f);
+        }
+        UpdateCustomerState(CustomerStateEnum.Leaving);
+    }
 
 }
 
@@ -253,7 +241,7 @@ public enum CustomerStateEnum
     InQueue,
     MovingToQueue,
     WaitingOrder,
-    MovingToExit,
+    MovingToExit, // used for customers who does not enter
     Eating,
     Leaving
 }

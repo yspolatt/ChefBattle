@@ -5,31 +5,26 @@ using UnityEngine;
 public class Table : MonoBehaviour
 {
 
-    private int numOfSeats = 2;
-
     public List<Seat> seats = new List<Seat>();
 
-    public Transform[] seatPositions = new Transform[2];
+    public Transform[] seatTransforms = new Transform[2];
 
-   private void Start()
-   {    
-        for (int i = 0; i< numOfSeats; i++){
-            seats.Add(new Seat(seatPositions[i]));
-            Debug.Log("Seat added" + seats[i].position);
+
+    private void Awake(){
+        for(int i = 0; i < seatTransforms.Length; i++){
+            seats.Add(new Seat(seatTransforms[i], i));
         }
-       
-   }
-
-   
-
-
+    }
 }
 
 public class Seat{
     public bool isAvailable;
-    public Transform position;
-    public Seat(Transform position){
-        this.position = position;
+    public Transform transform;
+
+    public int seatNumber;
+    public Seat(Transform transform, int seatNumber){
+        this.transform = transform;
         this.isAvailable = true;
+        this.seatNumber = seatNumber;
     }
 }
