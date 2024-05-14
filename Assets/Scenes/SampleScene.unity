@@ -1540,7 +1540,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 10, z: -16}
+  m_LocalPosition: {x: -2, y: 9.16, z: -15.16}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1836,7 +1836,7 @@ Transform:
   m_GameObject: {fileID: 1098643648}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 6.575299, y: 1.5352384, z: 3.8264654}
-  m_LocalScale: {x: 1.2, y: 1, z: 1.4}
+  m_LocalScale: {x: 1.2, y: 1, z: 1.3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 705507995}
@@ -2441,8 +2441,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   customers: []
   queueCapacity: 5
-  minSpawnInterval: 5
-  maxSpawnInterval: 10
+  minSpawnInterval: 2
+  maxSpawnInterval: 5
   customerSpawnPoints:
   - {fileID: 457899445}
   - {fileID: 395359394}
