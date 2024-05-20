@@ -101,6 +101,8 @@ public class Customer : MonoBehaviour
                 MoveToExit();
                 shopManager.ReleaseSeat(seat);
                 customerManager.HandleCustomerLeavingShop();
+                GameObject plate  = GameObject.Find("Steak(Clone)");
+                Destroy(plate);
 
                 break;
 

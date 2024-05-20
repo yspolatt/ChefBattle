@@ -18,8 +18,6 @@ public class Waiter : MonoBehaviour
 
     private CustomerManager customerManager;
 
-
-
     Transform steak;
     [SerializeField] private ServiceTable serviceTable;
     void Start()
@@ -47,27 +45,14 @@ public class Waiter : MonoBehaviour
                 case WaiterStateEnum.ServingCustomer:
                     state = WaiterStateEnum.Idle;
                     steak.parent = customer.transform;
-                    steak.localPosition = new Vector3(0, 0, 0);
+                    steak.localPosition = new Vector3(0, 0, 0.8f);
                     plateAtHand = Instantiate(plate, steak);
-                    plateAtHand.localPosition = Vector3.zero;
-                    plateAtHand.localScale = new Vector3(3, 3, 3);
+                    plateAtHand.localPosition = new Vector3(0, 0, 0.0f);
                     shopManager.addWaiter(this);
                     customer.UpdateCustomerState(CustomerStateEnum.Eating);
                     MoveDefaultPosition();
-                    
-                    
-                    //MoveDefaultPosition();
-                    // customer.MoveToExit();
                     break;
-                //     state = CustomerState.WaitingOrder;
-                //     break;
-                // case CustomerState.WaitingOrder:
-                //     state = CustomerState.Eating;
-                //     break;
-                // case CustomerState.Eating:
-                //     state = CustomerState.Leaving;
-                //     break;
-                //case CustomerStateEnum.Leaving:
+             
 
                 //break;
                 default:

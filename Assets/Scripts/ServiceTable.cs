@@ -9,7 +9,6 @@ public class ServiceTable : MonoBehaviour
     [SerializeField] private Transform cookedPrefab;
     [SerializeField] private Transform[] plateSpawnPoints;
     private Queue<int> emptySpawnPoints = new Queue<int>();
-    private int nextEmptySpawnPoint;
     private int emptyPlaceCount = 4;
 
     public ServiceTable()
@@ -24,8 +23,9 @@ public class ServiceTable : MonoBehaviour
     public Transform drop(Transform steakTransform)
     {
         readySteakQueue.Enqueue(steakTransform);
-        nextEmptySpawnPoint = emptySpawnPoints.Dequeue();
+        int nextEmptySpawnPoint = getNextEmptySpawnPoint();
         Transform spawnPoint = plateSpawnPoints[nextEmptySpawnPoint];
+        nextEmptySpawnPoint--;
         steakTransform.parent = spawnPoint;
         steakTransform.localPosition = Vector3.zero;
         emptyPlaceCount--;
@@ -35,9 +35,17 @@ public class ServiceTable : MonoBehaviour
     {
         return emptyPlaceCount;
     }
-    public Transform getNextSteak()
+    public int getNextEmptySpawnPoint()
     {
-        return readySteakQueue.Dequeue();
+        int nextEmpty = emptySpawnPoints.Dequeue();
+        emptySpawnPoints.Enqueue(nextEmpty);
+        return nextEmpty;
+    }
+    public Transform getNextSteak()
+    {   
+        Transform steak = readySteakQueue.Dequeue();
+        
+        return steak;
     }
     public void incrementEmptyPlaceCount()
     {

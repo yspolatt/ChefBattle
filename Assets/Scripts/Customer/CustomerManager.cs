@@ -110,8 +110,6 @@ public class CustomerManager : Singleton<CustomerManager>
     // customer already deleted from seated customers
     public void HandleCustomerLeavingShop(){
         int numberOfCustomers = customerWaitingQueue.Count;
-
-
         if(isAnyCustomerWaiting()){
             Customer customerToServe = customerWaitingQueue.Dequeue();
             customerToServe.StartMove();
