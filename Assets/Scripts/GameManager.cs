@@ -62,11 +62,6 @@ public class GameManager: Singleton<GameManager>
        
     }
 
-    // private float CalculateCustomerSpawnTime(){
-    //     return  priceCoefficient * (currentPriceOfSteak - defaultSteakPrice) + steakScoreCoefficient * (averageSteakScore - defaultSteakScore) + customerWaitingTimeCoefficient * Math.Max(0f, averageCustomerWaitingTime - defaultCustomerWaitingTime);
-       
-    // }
-
     private float CalculateCustomerSpawnTimeForSteak(){
         float scoreImpact = (averageSteakScore - defaultSteakScore) * steakScoreCoefficient;
         Debug.Log("Score Impact: " + scoreImpact);
@@ -81,7 +76,7 @@ public class GameManager: Singleton<GameManager>
     }
 
     private float CalculateCustomerSpawnTimeForPrice(){
-        float priceImpact = Mathf.Log(1 + Mathf.Max(0, currentPriceOfSteak - defaultSteakPrice))* priceCoefficient;
+        float priceImpact = Mathf.Log(1 + (currentPriceOfSteak - defaultSteakPrice)) * priceCoefficient;
         Debug.Log("Price Impact: " + priceImpact);
         return priceImpact;
 
@@ -145,6 +140,16 @@ public class GameManager: Singleton<GameManager>
 
     public float GetPriceOfSteak(){
         return currentPriceOfSteak;
+    }
+
+    public void IncreasePriceOfSteak(){
+        currentPriceOfSteak += 1f;
+        ChangeCustomerSpawnIntervalPrice();
+    }
+
+    public void DecreasePriceOfSteak(){
+        currentPriceOfSteak -= 1f;
+        ChangeCustomerSpawnIntervalPrice();
     }
 
     private void OnCustomerEatingFinished(Customer customer){

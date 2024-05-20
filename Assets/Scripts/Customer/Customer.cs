@@ -25,7 +25,7 @@ public class Customer : MonoBehaviour
 
     [SerializeField] private float maxWaitOrderTime = 20f;
 
-    [SerializeField] private float eatingTime = 10f; 
+    [SerializeField] private float eatingTime = 8f; 
 
     public float waitingTime = 0f;
 

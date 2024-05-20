@@ -53,6 +53,7 @@ public class Waiter : MonoBehaviour
                     plateAtHand.localScale = new Vector3(3, 3, 3);
                     shopManager.addWaiter(this);
                     customer.UpdateCustomerState(CustomerStateEnum.Eating);
+                    MoveDefaultPosition();
                     
                     
                     //MoveDefaultPosition();
