@@ -9,9 +9,17 @@ public class Steak : MonoBehaviour
     private Renderer steakRenderer;
     public Color startColor = new Color(255f/255f, 151f/255f, 166f/255f, 1f);
     public Color endColor = Color.black;
+
+    public static float maxCookingDuration = 15f; 
+
+    public static event System.Action<Steak> OnSteakCooked;
+
+
+    
     public Steak(float cookingDuration)
     {
         this.cookingDuration = cookingDuration;
+        
     }
     void Start()
     {
@@ -20,7 +28,6 @@ public class Steak : MonoBehaviour
     {
         // Initialize the material
         steakRenderer = findRenderer();
-        Debug.Log(steakRenderer);
         startColor = steakRenderer.material.color;
     }
     public void StartCooking()
@@ -30,6 +37,8 @@ public class Steak : MonoBehaviour
     public void StopCooking()
     {
         StopCoroutine(cookingRoutine);
+        OnSteakCooked?.Invoke(this);
+        
     }
     public float GetCookingDuration()
     {
@@ -40,23 +49,19 @@ public class Steak : MonoBehaviour
     {
         if (steakRenderer.material == null)
     {
-        Debug.LogError("Steak material is null.");
-        yield break; // Stop the coroutine if the material is not assigned
+        yield break; 
     }
         while (true)
         {
-            // Update the remaining time
+            
             cookingDuration += Time.deltaTime;
+            
+            steakRenderer.material.color = Color.Lerp(startColor, endColor, cookingDuration/maxCookingDuration);
 
-            // Update the color based on the proportion of cooking time completed
-            steakRenderer.material.color = Color.Lerp(startColor, endColor, cookingDuration/10);
-
-            // Wait until the next frame
             yield return null;
         }
 
-        // Ensure the color is set to fully cooked at the end
-        steakRenderer.material.color = endColor;
+
     }
     private Renderer findRenderer(){
         GameObject steakRenderer = transform.Find("Steak").gameObject;

@@ -100,7 +100,6 @@ public class ShopManager : Singleton<ShopManager>
                 return false;
             }
         }
-        Debug.Log("All seats are occupied");
         return true;
     }
 

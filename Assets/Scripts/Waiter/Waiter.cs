@@ -36,7 +36,6 @@ public class Waiter : MonoBehaviour
             switch (state)
             {
                 case WaiterStateEnum.GoingtoSteak:
-                    Debug.Log("Arrived to Steak");
                     steak.parent = carryPoint;
                     steak.localPosition = new Vector3(0, 0, 0);
                     plateAtHand = Instantiate(plate, carryPoint);
@@ -54,6 +53,8 @@ public class Waiter : MonoBehaviour
                     plateAtHand.localScale = new Vector3(3, 3, 3);
                     shopManager.addWaiter(this);
                     customer.UpdateCustomerState(CustomerStateEnum.Eating);
+                    
+                    
                     //MoveDefaultPosition();
                     // customer.MoveToExit();
                     break;
@@ -78,19 +79,13 @@ public class Waiter : MonoBehaviour
         state = WaiterStateEnum.GoingtoSteak;
         customer = customerToServe;
         steak = steak_serve;
-        Debug.Log("Task Assigned");
-        Debug.Log(steak.position);
-        Debug.Log(customerToServe);
         goGetSteak(steak_serve);
     }
     public void goGetSteak(Transform steak_serve)
     {
-        Debug.Log("Going to get steak");
+        
         state = WaiterStateEnum.GoingtoSteak;
-        Debug.Log(state);
         steak = steak_serve;
-        Debug.Log(steak.position);
-
         Vector3 target = new Vector3(steak.position.x - 0.5f, steak.position.y, steak.position.z);
         navMeshAgent.SetDestination(target);
 

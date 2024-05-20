@@ -10,7 +10,6 @@ public class Fridge : MonoBehaviour
 
     public Transform getSteak()
     {
-        Debug.Log("I want to pick a Steak!");
         steakTransform = Instantiate(steakPrefab, carryPoint);
         steakTransform.localPosition = Vector3.zero;
         return steakTransform;

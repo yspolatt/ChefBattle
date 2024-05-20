@@ -66,6 +66,8 @@ public class Player : MonoBehaviour
                     isHoldingCooked = true;
                     isHolding = true;
 
+                    
+
                 }
                 else if (gameInput.Wantsdrop() && isHoldingRaw && stoveManager.IsStoveEmpty(num))
                 {
@@ -80,7 +82,7 @@ public class Player : MonoBehaviour
             else if (raycasthit.transform.TryGetComponent(out Fridge fridge) && gameInput.Wantspick() && !isHolding && stoveManager.EmptyStoveCount() > 0)
             {
                 steakathand = fridge.getSteak();
-                Debug.Log(steakathand);
+                
                 isHolding = true;
                 isHoldingRaw = true;
                 gameInput.disableWantspick();

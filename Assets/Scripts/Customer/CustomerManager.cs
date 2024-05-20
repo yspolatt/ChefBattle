@@ -13,8 +13,26 @@ public class CustomerManager : Singleton<CustomerManager>
 
     public int queueCapacity = 5;
 
-    [SerializeField] private float minSpawnInterval = 2900f;
-    [SerializeField] private float maxSpawnInterval = 3000f;
+    [SerializeField] private float minSpawnInterval = 10f  ;
+
+    public float getMinSpawnInterval(){
+        return minSpawnInterval;
+    }
+    public void setMinSpawnInterval(float value){
+        minSpawnInterval = value;
+    }
+
+    [SerializeField] private float maxSpawnInterval = 15f;
+
+    public float getMaxSpawnInterval(){
+        return maxSpawnInterval;
+    }
+    public void setMaxSpawnInterval(float value){
+        maxSpawnInterval = value;
+    }
+
+    private float effectiveSpawnMin { get ; set; }
+    private float effectiveSpawnMax { get ; set;}
 
     [SerializeField] private Transform[] customerSpawnPoints;
 
@@ -30,6 +48,8 @@ public class CustomerManager : Singleton<CustomerManager>
     protected override void Awake(){
         customerPool = new ObjectPool<Customer>(createFunction, actionOnGet, actionOnRelease, actionOnDestroy, true,  defaultCapacity: 10);
         Customer.OnArrivedExit += OnReturnedToPool;
+        effectiveSpawnMin = minSpawnInterval;
+        effectiveSpawnMax = maxSpawnInterval;
         base.Awake();
     }
 
@@ -61,7 +81,7 @@ public class CustomerManager : Singleton<CustomerManager>
     private IEnumerator SpawnCustomers(){
         while(true){
             SpawnCustomer();
-            float interval = UnityEngine.Random.Range(minSpawnInterval, maxSpawnInterval);
+            float interval = UnityEngine.Random.Range(effectiveSpawnMin, effectiveSpawnMax);
             yield return new WaitForSeconds(interval);
         }
         
@@ -69,7 +89,7 @@ public class CustomerManager : Singleton<CustomerManager>
 
     
     private void SpawnCustomer(){
-        Debug.Log("Spawning customer");
+
         Customer customer = customerPool.Get();
         customers.Add(customer);
     }
@@ -90,7 +110,7 @@ public class CustomerManager : Singleton<CustomerManager>
     // customer already deleted from seated customers
     public void HandleCustomerLeavingShop(){
         int numberOfCustomers = customerWaitingQueue.Count;
-        Debug.Log("Number of customers in queue: " + numberOfCustomers);
+
 
         if(isAnyCustomerWaiting()){
             Customer customerToServe = customerWaitingQueue.Dequeue();
@@ -141,6 +161,15 @@ public class CustomerManager : Singleton<CustomerManager>
     }
     public Customer RemoveCustomerFromQueue(){
         return customerWaitingQueue.Dequeue();
+    }
+
+    public void ChangeCustomerSpawnInterval(float delta){
+        effectiveSpawnMin += delta;
+        effectiveSpawnMax += delta;
+        effectiveSpawnMin = Math.Max(2, effectiveSpawnMin);
+        effectiveSpawnMax = Math.Max(5, effectiveSpawnMax);
+
+        Debug.Log("New spawn interval: " + effectiveSpawnMin + " - " + effectiveSpawnMax);
     }
     
 

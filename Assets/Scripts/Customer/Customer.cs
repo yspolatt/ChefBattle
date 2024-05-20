@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -21,11 +19,17 @@ public class Customer : MonoBehaviour
     
     public static event Action<Customer> OnArrivedExit;
 
-    
-    [SerializeField] private float maxWaitOrderTime = 7f;
+    public static event Action<Customer> OnWaitingFinished;
 
-    [SerializeField] private float eatingTime = 10f;
+    public static event Action<Customer> OnEatingFinished;
 
+    [SerializeField] private float maxWaitOrderTime = 20f;
+
+    [SerializeField] private float eatingTime = 10f; 
+
+    public float waitingTime = 0f;
+
+    public float priceToPay = 0f;
 
 
     private Renderer customerRenderer;
@@ -45,8 +49,12 @@ public class Customer : MonoBehaviour
     private void OnEnable()
     {
         StartMove();
+        
     }
-    
+    private void Start()
+    {
+        priceToPay = GameManager.Instance.GetPriceOfSteak();
+    }
 
 
 
@@ -81,19 +89,20 @@ public class Customer : MonoBehaviour
     }
 
 
-    // // state is the new state that the customer will be in
+    // state is the new state that the customer will be in
     public void UpdateCustomerState(CustomerStateEnum state){
 
         switch(state){
             case CustomerStateEnum.Eating:
                 StartEating();
+                
                 break;
             case CustomerStateEnum.Leaving:
                 MoveToExit();
                 shopManager.ReleaseSeat(seat);
                 customerManager.HandleCustomerLeavingShop();
+
                 break;
-    
 
         }
     }
@@ -103,7 +112,7 @@ public class Customer : MonoBehaviour
     private bool HasArrived()
     {   
 
-        if ((navMeshAgent.remainingDistance <= 2f && state == CustomerStateEnum.MovingToExit))
+        if (navMeshAgent.remainingDistance <= 2f && state == CustomerStateEnum.MovingToExit)
         {
             return true;
         }
@@ -170,13 +179,18 @@ public class Customer : MonoBehaviour
     {
         
         float elapsedTime = 0f;
-        Color targetColor = Color.red;
+        Color pinkishRed = Color.Lerp(Color.red, Color.white, 0.2f);
+        Color targetColor = new Color(pinkishRed.r, pinkishRed.g, pinkishRed.b, 0.5f); 
+
         while (elapsedTime < maxWaitOrderTime)
         {
             elapsedTime += 0.1f;
+            waitingTime += 0.1f;
             customerRenderer.material.color = Color.Lerp(originalColor, targetColor, elapsedTime / maxWaitOrderTime);
             yield return new WaitForSeconds(0.1f);
         }
+
+        //UpdateCustomerState(CustomerStateEnum.Leaving); if the customer leaves after waiting for order
 
     }
     private Renderer findRenderer()
@@ -186,13 +200,6 @@ public class Customer : MonoBehaviour
         return body.GetComponent<Renderer>();
     }
 
-    private void OnDestroy()
-    {
-        if (state == CustomerStateEnum.MovingToQueue)
-        {
-            //CustomerManager.Instance.customerQueue.Remove(this);  burda niye bu var bilmiyorum
-        }
-    }
 
     
     public void StartMove()
@@ -223,8 +230,10 @@ public class Customer : MonoBehaviour
     }
 
     public void StartEating(){
+        StopAllCoroutines();
+        OnWaitingFinished?.Invoke(this);
         StartCoroutine(EatingCoroutine());
-
+        
     }
 
     private IEnumerator EatingCoroutine()
@@ -236,6 +245,8 @@ public class Customer : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
         UpdateCustomerState(CustomerStateEnum.Leaving);
+        OnEatingFinished?.Invoke(this);
+    
     }
 
 }
@@ -246,19 +257,7 @@ public enum CustomerStateEnum
     InQueue,
     MovingToQueue,
     WaitingOrder,
-    MovingToExit, // used for customers who does not enter
+    MovingToExit,
     Eating,
     Leaving
-}
-
-public class CustomerState
-{
-    public CustomerStateEnum state;
-    public Customer customer;
-    public CustomerState(CustomerStateEnum state, Customer customer)
-    {
-        this.state = state;
-        this.customer = customer;
-    }
-
 }
