@@ -34,6 +34,8 @@ public class GameManager: Singleton<GameManager>
     [SerializeField] private float absoluteMaxChangeDelta = 3f;
 
 
+
+
     
     private int numOfCustomers = 0; 
 
@@ -44,6 +46,8 @@ public class GameManager: Singleton<GameManager>
     private float totalCustomerWaitingTime = 0f;
 
     public TextMeshProUGUI profitText;
+
+    public TextMeshProUGUI currentPriceText;
 
 
     protected override void Awake()
@@ -76,7 +80,7 @@ public class GameManager: Singleton<GameManager>
     }
 
     private float CalculateCustomerSpawnTimeForPrice(){
-        float priceImpact = Mathf.Log(1 + (currentPriceOfSteak - defaultSteakPrice)) * priceCoefficient;
+        float priceImpact = (currentPriceOfSteak - defaultSteakPrice) * priceCoefficient;
         Debug.Log("Price Impact: " + priceImpact);
         return priceImpact;
 
@@ -98,8 +102,8 @@ public class GameManager: Singleton<GameManager>
     }
 
 
-    private void ChangeCustomerSpawnIntervalPrice(){
-        float delta = CalculateCustomerSpawnTimeForPrice();
+    private void ChangeCustomerSpawnIntervalPrice(int increase = 1){
+        float delta = priceCoefficient * increase; 
         delta = Mathf.Clamp(delta, -absoluteMaxChangeDelta, absoluteMaxChangeDelta);
         CustomerManager.Instance.ChangeCustomerSpawnInterval(delta);
     }
@@ -108,7 +112,6 @@ public class GameManager: Singleton<GameManager>
         float min = 0f;
         float max = Steak.maxCookingDuration;
         float optimum = (min + max) / 2;
-        //float score = Mathf.Exp(-Mathf.Pow(duration - optimum, 2) / (2 * Mathf.Pow((max - min) / 6, 2))); // Gaussian function
         
         return 1 - Mathf.Abs(duration - optimum) / (max - min);
     }
@@ -145,20 +148,24 @@ public class GameManager: Singleton<GameManager>
     public void IncreasePriceOfSteak(){
         currentPriceOfSteak += 1f;
         ChangeCustomerSpawnIntervalPrice();
+        currentPriceText.text = "Current Price: $" + currentPriceOfSteak;
     }
 
     public void DecreasePriceOfSteak(){
+        if(currentPriceOfSteak <= 1){
+            return;
+        }
         currentPriceOfSteak -= 1f;
-        ChangeCustomerSpawnIntervalPrice();
+        ChangeCustomerSpawnIntervalPrice(-1);
+        currentPriceText.text = "Current Price: $" + currentPriceOfSteak;
     }
 
     private void OnCustomerEatingFinished(Customer customer){
-        Debug.Log("Customer finished eating");
-        Debug.Log("Customer price to pay: " + customer.priceToPay);
-        Debug.Log("Current profit: " + profit);
         profit += customer.priceToPay;
         profitText.text = "$" + profit;
     }
+
+
 
    
   
